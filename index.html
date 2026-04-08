@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>PriceMatrix — Smart Grocery Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f6fa;
+  --white:#ffffff;
+  --surface:#ffffff;
+  --border:#eaedf2;
+  --text:#1a1d23;
+  --muted:#6b7280;
+  --light:#f9fafb;
+  --green:#1a9e3f;
+  --green-bg:#e8f8ed;
+  --red:#e53e3e;
+  --zepto:#8b5cf6;
+  --blinkit:#f59e0b;
+  --instamart:#ef4444;
+  --radius:12px;
+  --radius-lg:16px;
+  --sans:'Nunito',sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;}
+ 
+/* ── Header ── */
+.header{background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.header-inner{max-width:1200px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:16px;height:64px;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;}
+.logo-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#4f46e5);display:grid;place-items:center;color:#fff;font-weight:900;font-size:13px;letter-spacing:-0.5px;}
+.logo-text{font-weight:800;font-size:18px;color:var(--text);}
+.logo-text span{color:#7c3aed;}
+.search-bar{flex:1;position:relative;max-width:500px;}
+.search-bar input{width:100%;background:var(--light);border:1.5px solid var(--border);border-radius:999px;padding:10px 16px 10px 42px;font-family:var(--sans);font-size:14px;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;}
+.search-bar input:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1);}
+.search-bar input::placeholder{color:var(--muted);}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;pointer-events:none;}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.cart-btn{background:var(--zepto);color:#fff;border:none;border-radius:999px;padding:10px 20px;font-family:var(--sans);font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:transform .15s,background .15s;}
+.cart-btn:hover{background:#7c3aed;transform:scale(1.02);}
+.cart-count{background:rgba(255,255,255,.25);border-radius:999px;padding:2px 7px;font-size:12px;font-weight:800;}
+ 
+/* ── Categories ── */
+.cat-strip{background:var(--white);border-bottom:1px solid var(--border);padding:0 20px;}
+.cat-inner{max-width:1200px;margin:0 auto;display:flex;gap:4px;overflow-x:auto;padding:12px 0;scrollbar-width:none;}
+.cat-inner::-webkit-scrollbar{display:none;}
+.cat-pill{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius);border:none;background:transparent;cursor:pointer;transition:background .15s;flex-shrink:0;min-width:72px;}
+.cat-pill:hover{background:var(--light);}
+.cat-pill.active{background:#f0ebff;}
+.cat-icon{width:48px;height:48px;border-radius:50%;overflow:hidden;border:2px solid var(--border);background:var(--light);display:grid;place-items:center;font-size:24px;}
+.cat-pill.active .cat-icon{border-color:#7c3aed;}
+.cat-label{font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;}
+.cat-pill.active .cat-label{color:#7c3aed;}
+ 
+/* ── Delivery Banner ── */
+.delivery-banner{background:linear-gradient(90deg,#7c3aed,#6d28d9);color:#fff;padding:8px 20px;text-align:center;font-size:13px;font-weight:600;}
+.delivery-banner span{opacity:.85;font-weight:400;margin-left:8px;}
+ 
+/* ── Main Layout ── */
+.main{max-width:1200px;margin:0 auto;padding:24px 20px 120px;}
+.section-title{font-size:20px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.section-title .subtitle{font-size:13px;font-weight:500;color:var(--muted);}
+ 
+/* ── Store Tabs ── */
+.store-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.store-tab{padding:8px 18px;border-radius:999px;border:1.5px solid var(--border);background:var(--white);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .2s;}
+.store-tab.active-blinkit{border-color:var(--blinkit);background:#fffbeb;color:#92400e;}
+.store-tab.active-zepto{border-color:var(--zepto);background:#f5f3ff;color:#5b21b6;}
+.store-tab.active-instamart{border-color:var(--instamart);background:#fff5f5;color:#991b1b;}
+.store-dot{width:8px;height:8px;border-radius:50%;}
+ 
+/* ── Product Grid ── */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
+.product-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:box-shadow .2s,transform .15s;cursor:default;position:relative;}
+.product-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.1);transform:translateY(-2px);}
+.product-img-wrap{position:relative;background:#f9f9f9;padding:16px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;}
+.product-img-wrap img{width:100%;height:100%;object-fit:contain;border-radius:8px;}
+.badge{position:absolute;top:10px;left:10px;background:#ff6d00;color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:5px;letter-spacing:.03em;text-transform:uppercase;}
+.badge.bestseller{background:#7c3aed;}
+.product-body{padding:12px;}
+.product-name{font-size:13px;font-weight:700;line-height:1.35;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.product-qty{font-size:11px;color:var(--muted);margin-bottom:10px;font-weight:500;}
+/* Price row */
+.price-row{display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.price-now{background:var(--green);color:#fff;font-size:14px;font-weight:800;padding:3px 9px;border-radius:6px;}
+.price-mrp{font-size:12px;color:var(--muted);text-decoration:line-through;font-weight:500;}
+.price-off{font-size:11px;color:var(--green);font-weight:700;}
+/* Compare prices */
+.compare-prices{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;}
+.cmp-chip{font-size:10px;font-weight:700;padding:3px 7px;border-radius:5px;display:flex;align-items:center;gap:4px;}
+.cmp-blinkit{background:#fffbeb;color:#92400e;border:1px solid #fbbf24;}
+.cmp-zepto{background:#f5f3ff;color:#5b21b6;border:1px solid #a78bfa;}
+.cmp-instamart{background:#fff5f5;color:#991b1b;border:1px solid #fca5a5;}
+.cmp-chip.cheapest{border-width:1.5px;font-size:11px;}
+.cheapest-badge{background:#dcfce7;color:#166534;font-size:9px;font-weight:800;padding:1px 5px;border-radius:3px;}
+/* Add button */
+.add-btn{width:100%;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-family:var(--sans);font-weight:800;font-size:13px;padding:8px;border-radius:8px;cursor:pointer;transition:all .15s;}
+.add-btn:hover{background:#7c3aed;color:#fff;}
+.qty-ctrl{display:flex;align-items:center;justify-content:space-between;background:#7c3aed;border-radius:8px;padding:6px 12px;}
+.qty-btn{background:none;border:none;color:#fff;font-size:20px;font-weight:700;cursor:pointer;line-height:1;padding:0 4px;transition:transform .1s;}
+.qty-btn:hover{transform:scale(1.2);}
+.qty-num{color:#fff;font-weight:800;font-size:15px;min-width:20px;text-align:center;}
+ 
+/* ── Cart Drawer ── */
+.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;opacity:0;pointer-events:none;transition:opacity .25s;}
+.cart-overlay.open{opacity:1;pointer-events:all;}
+.cart-drawer{position:fixed;right:0;top:0;bottom:0;width:420px;max-width:100vw;background:var(--white);z-index:401;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;}
+.cart-drawer.open{transform:translateX(0);}
+.cart-header{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.cart-header h2{font-size:18px;font-weight:800;}
+.close-btn{background:var(--light);border:none;border-radius:50%;width:36px;height:36px;display:grid;place-items:center;cursor:pointer;font-size:18px;color:var(--muted);}
+.close-btn:hover{background:var(--border);}
+.cart-body{flex:1;overflow-y:auto;padding:16px;}
+.cart-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.cart-item-img{width:52px;height:52px;object-fit:contain;border-radius:8px;background:var(--light);padding:4px;flex-shrink:0;}
+.cart-item-info{flex:1;}
+.cart-item-name{font-size:13px;font-weight:700;line-height:1.3;}
+.cart-item-qty-label{font-size:11px;color:var(--muted);margin-top:2px;}
+.cart-item-ctrl{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.ci-btn{width:26px;height:26px;border-radius:6px;border:1.5px solid #7c3aed;background:transparent;color:#7c3aed;font-size:16px;font-weight:700;cursor:pointer;display:grid;place-items:center;line-height:1;}
+.ci-btn:hover{background:#7c3aed;color:#fff;}
+.ci-num{font-size:14px;font-weight:800;min-width:16px;text-align:center;}
+.cart-item-price{font-size:14px;font-weight:800;color:var(--green);flex-shrink:0;}
+ 
+/* ── Cart Deal Panel ── */
+.deal-panel{padding:16px;border-top:1px solid var(--border);}
+.deal-heading{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em;}
+.store-total-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);margin-bottom:8px;transition:border-color .2s;}
+.store-total-row.winner{border-color:var(--green);background:var(--green-bg);}
+.str-left{display:flex;align-items:center;gap:8px;}
+.str-dot{width:9px;height:9px;border-radius:50%;}
+.str-name{font-size:13px;font-weight:700;}
+.str-del{font-size:11px;color:var(--muted);}
+.str-price{font-size:16px;font-weight:800;}
+.store-total-row.winner .str-name,.store-total-row.winner .str-price{color:var(--green);}
+.win-badge{background:var(--green);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;margin-left:6px;}
+.savings-banner{background:var(--green-bg);border:1.5px solid #86efac;border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
+.sav-label{font-size:12px;color:#15803d;font-weight:600;}
+.sav-amt{font-size:18px;font-weight:800;color:var(--green);}
+.checkout-btn{width:100%;margin-top:14px;background:var(--green);color:#fff;border:none;border-radius:10px;padding:14px;font-family:var(--sans);font-weight:800;font-size:15px;cursor:pointer;transition:background .2s;}
+.checkout-btn:hover{background:#16a34a;}
+.empty-cart{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-cart .icon{font-size:48px;margin-bottom:12px;}
+.empty-cart p{font-size:14px;}
+ 
+/* ── No results ── */
+.no-results{text-align:center;padding:60px 20px;color:var(--muted);}
+.no-results .icon{font-size:40px;margin-bottom:10px;}
+ 
+@media(max-width:600px){
+  .cart-drawer{width:100vw;}
+  .product-grid{grid-template-columns:repeat(2,1fr);}
+  .compare-prices{display:none;}
+}
+</style>
+</head>
+<body>
+ 
+<!-- Header -->
+<header class="header">
+  <div class="header-inner">
+    <a class="logo" href="#">
+      <img src="https://cdn-icons-png.flaticon.com/512/1611/1611261.png" alt="PriceMatrix Logo" style="height: 34px; width: auto; border-radius: 8px;">
+      
+      <div class="logo-text">Price<span>Matrix</span></div>
+    </a>
+    <div class="search-bar">
+      <span class="search-icon">⌕</span>
+      <input id="searchInput" type="text" placeholder="Search for groceries, snacks, dairy…"/>
+    </div>
+    <div class="header-right">
+      <button class="cart-btn" id="cartToggle">
+        🛒 Cart <span class="cart-count" id="cartCount">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+ 
+<!-- Category Strip -->
+<div class="cat-strip">
+  <div class="cat-inner" id="catStrip"></div>
+</div>
+ 
+<!-- Delivery Banner -->
+<div class="delivery-banner">
+  ⚡ Comparing prices across Blinkit, Zepto & Instamart in real-time
+  <span>Free delivery on orders above ₹200</span>
+</div>
+ 
+<!-- Main -->
+<main class="main">
+  <div class="section-title">
+    <span id="sectionTitle">All Items</span>
+    <span class="subtitle" id="itemCountLabel"></span>
+  </div>
+ 
+  <!-- Store Tabs -->
+  <div class="store-tabs">
+    <div class="store-tab active-blinkit" id="tab-blinkit" onclick="filterStore('blinkit')">
+      <span class="store-dot" style="background:#f59e0b"></span>Blinkit
+    </div>
+    <div class="store-tab active-zepto" id="tab-zepto" onclick="filterStore('zepto')">
+      <span class="store-dot" style="background:#8b5cf6"></span>Zepto
+    </div>
+    <div class="store-tab active-instamart" id="tab-instamart" onclick="filterStore('instamart')">
+      <span class="store-dot" style="background:#ef4444"></span>Instamart
+    </div>
+    <div class="store-tab" id="tab-all" style="border-color:#7c3aed;background:#f0ebff;color:#5b21b6;" onclick="filterStore('all')">
+      ✦ Compare All
+    </div>
+  </div>
+ 
+  <div class="product-grid" id="productGrid"></div>
+  <div class="no-results" id="noResults" style="display:none">
+    <div class="icon">🔍</div>
+    <p>No products found. Try a different search.</p>
+  </div>
+</main>
+ 
+<!-- Cart Overlay -->
+<div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+ 
+<!-- Cart Drawer -->
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header">
+    <h2>My Cart</h2>
+    <button class="close-btn" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-body" id="cartBody"></div>
+  <div class="deal-panel" id="dealPanel" style="display:none"></div>
+</div>
+ 
+<script>
+const CATALOG = [
+  {id:1, item:"Amul Full Cream Milk 1L", category:"Dairy", qty:"1 L", blinkit:62, zepto:60, instamart:65, mrp:72, bestseller:true,
+    img:"https://www.bbassets.com/media/uploads/p/l/40114416_8-amul-taaza-milk.jpg"},
+  {id:2, item:"Amul Butter 500g", category:"Dairy", qty:"500 g", blinkit:275, zepto:269, instamart:280, mrp:335,
+    img:"https://assets.hyperpure.com/data/images/products/03669d1e950fd601fd7963fc6827201e.jpg"},
+  {id:3, item:"Paneer 500g", category:"Dairy", qty:"1 pack (500 g)", blinkit:226, zepto:220, instamart:235, mrp:335, new:true,
+    img:"https://m.media-amazon.com/images/I/71kip8jehUL._AC_UF894,1000_QL80_.jpg"},
+  {id:4, item:"Britannia Cheese Slices 200g", category:"Dairy", qty:"200 g", blinkit:145, zepto:149, instamart:142, mrp:160,
+    img:"https://m.media-amazon.com/images/I/41G5ogK3-tL._AC_UF1000,1000_QL80_.jpg"},
+  {id:5, item:"Aashirvaad Atta 5kg", category:"Staples", qty:"5 kg", blinkit:285, zepto:279, instamart:290, mrp:340,
+    img:"https://m.media-amazon.com/images/I/91Lj2AJXfOL._AC_UF894,1000_QL80_.jpg"},
+  {id:6, item:"Fortune Sunflower Oil 1L", category:"Staples", qty:"1 L", blinkit:148, zepto:152, instamart:145, mrp:170,
+    img:"https://dmaxpro.in/wp-content/uploads/2023/08/Fortune-Sunlite-Oil-1Lt.png"},
+  {id:7, item:"Tata Salt 1kg", category:"Staples", qty:"1 kg", blinkit:24, zepto:22, instamart:25, mrp:26,
+    img:"https://m.media-amazon.com/images/I/616LG6VGBWL.jpg"},
+  {id:8, item:"Basmati Rice 1kg", category:"Staples", qty:"1 kg", blinkit:130, zepto:125, instamart:135, mrp:150,
+    img:"https://m.media-amazon.com/images/I/61XFtNhIx+L._AC_UF894,1000_QL80_.jpg"},
+  {id:9, item:"McCain French Fries 1kg", category:"Snacks & Drinks", qty:"1 pack (1 kg)", blinkit:189, zepto:185, instamart:195, mrp:297, new:true,
+    img:"https://rukmini1.flixcart.com/image/1500/1500/xif0q/ready-meal/w/7/t/-original-imahg83qavknncnb.jpeg?q=70"},
+  {id:10, item:"Lay's American Cream & Onion 52g", category:"Snacks & Drinks", qty:"1 pack (52.9 g)", blinkit:20, zepto:18, instamart:22, mrp:20, bestseller:true,
+    img:"https://www.vrindasupermart.in/wp-content/uploads/2021/08/294297_13-lays-potato-chips-calm-cream-onion-flavour-e1628606572899.jpg"},
+  {id:11, item:"Maggi Noodles 4-pack", category:"Snacks & Drinks", qty:"4 x 70 g", blinkit:72, zepto:70, instamart:75, mrp:88,
+    img:"https://image.cdn.shpy.in/360704/maggi1-1741762585211.jpeg"},
+  {id:12, item:"Britannia Marie Gold Biscuits 585g", category:"Snacks & Drinks", qty:"1 pack (585 g)", blinkit:71, zepto:68, instamart:74, mrp:90, bestseller:true,
+    img:"https://www.quickpantry.in/cdn/shop/products/britannia-marie-gold-biscuits-250-g-quick-pantry.jpg?v=1710538223"},
+  {id:13, item:"Classic Bourbon Biscuits 108g", category:"Snacks & Drinks", qty:"1 pack (108 g)", blinkit:14, zepto:13, instamart:15, mrp:30, bestseller:true,
+    img:"https://www.bbassets.com/media/uploads/p/l/263593_28-britannia-bourbon-chocolate-cream-biscuits.jpg"},
+  {id:14, item:"Colgate MaxFresh 150g", category:"Beauty & Personal", qty:"150 g", blinkit:99, zepto:95, instamart:102, mrp:115,
+    img:"https://m.media-amazon.com/images/I/61Ym3SMl+5L._AC_UF1000,1000_QL80_.jpg"},
+  {id:15, item:"Dove Soap 100g", category:"Beauty & Personal", qty:"100 g", blinkit:58, zepto:55, instamart:60, mrp:70,
+    img:"https://images.apollo247.in/pub/media/catalog/product/D/O/DOV0022_1-JULY23_1.jpg?tr=q-80,f-webp,w-400,dpr-3,c-at_max%20400w"},
+  {id:16, item:"Dettol Handwash 200ml", category:"Household", qty:"200 ml", blinkit:99, zepto:95, instamart:105, mrp:120,
+    img:"https://d1s24u4ln0wd0i.cloudfront.net/med_op/167482321563d3c62f79a4c.webp "},
+  {id:17, item:"Nescafé Classic 100g", category:"Snacks & Drinks", qty:"100 g", blinkit:380, zepto:369, instamart:385, mrp:430,
+    img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSmkGRAZz4kWyNqLtrHhb-4DRWU3rX35U9lBg&s"},
+  {id:18, item:"Tropicana Orange 1L", category:"Snacks & Drinks", qty:"1 L", blinkit:145, zepto:140, instamart:149, mrp:175,
+    img:"https://www.riteway.vg/media/catalog/product/5/9/598e72ee412c7acba60feff91f0f8d82.jpg?optimize=low&fit=bounds&height=700&width=700&canvas=700:700"},
+  {id:19, item:"Pepsi 400ml", category:"Snacks & Drinks", qty:"1 pc (400 ml)", blinkit:18, zepto:18, instamart:20, mrp:20, bestseller:true,
+    img:"https://m.media-amazon.com/images/I/51J54vvDdJL.jpg"},
+  {id:20, item:"Tomatoes 500g", category:"Fruits & Vegetables", qty:"500 g", blinkit:30, zepto:28, instamart:32, mrp:40,
+    img:"https://www.melissas.com/cdn/shop/files/image-of-organic-cherry-tomatoes-fruit-1125637785_600x600.jpg?v=1738742330"},
+  {id:21, item:"Orika African Peri Peri Seasoning 85g", category:"Staples", qty:"1 pack (85 g)", blinkit:51, zepto:48, instamart:54, mrp:93, new:true,
+    img:"https://m.media-amazon.com/images/I/61tWlA9q2BL.jpg"},
+  {id:22, item:"Red Bull 250ml", category:"Snacks & Drinks", qty:"250 ml", blinkit:125, zepto:120, instamart:130, mrp:145,
+    img:"https://www.bbassets.com/media/uploads/p/l/100393567_11-red-bull-energy-drink.jpg"},
+  {id:23, item:"Ghee 500ml", category:"Dairy", qty:"500 ml", blinkit:389, zepto:375, instamart:395, mrp:450,
+    img:"https://m.media-amazon.com/images/I/512tmdS4djL._AC_UF894,1000_QL80_.jpg"},
+  {id:24, item:"Banana Dozen", category:"Fruits & Vegetables", qty:"12 pcs", blinkit:49, zepto:45, instamart:52, mrp:60,
+    img:"https://zamaorganics.com/cdn/shop/files/banana1000_x_1000_px_1.png?v=1752738968"},
+];
+ 
+const CATEGORIES = [
+  {name:"All Items", icon:"🛒"},
+  {name:"Dairy", icon:"🥛"},
+  {name:"Snacks & Drinks", icon:"🥤"},
+  {name:"Fruits & Vegetables", icon:"🥦"},
+  {name:"Staples", icon:"🌾"},
+  {name:"Household", icon:"🧹"},
+  {name:"Beauty & Personal", icon:"💄"},
+];
+ 
+const DELIVERY_FEE = 30;
+const FREE_THRESHOLD = 200;
+const STORES = ['blinkit','zepto','instamart'];
+const STORE_LABELS = {blinkit:'Blinkit',zepto:'Zepto',instamart:'Instamart'};
+const STORE_COLORS = {blinkit:'#f59e0b',zepto:'#8b5cf6',instamart:'#ef4444'};
+ 
+let cart = {};
+let activeCategory = 'All Items';
+let activeStore = 'all';
+let searchQuery = '';
+ 
+// Build Category Strip
+const catStrip = document.getElementById('catStrip');
+CATEGORIES.forEach(cat => {
+  const btn = document.createElement('button');
+  btn.className = 'cat-pill' + (cat.name === 'All Items' ? ' active' : '');
+  btn.dataset.cat = cat.name;
+  btn.innerHTML = `<div class="cat-icon">${cat.icon}</div><span class="cat-label">${cat.name}</span>`;
+  btn.addEventListener('click', () => {
+    activeCategory = cat.name;
+    document.querySelectorAll('.cat-pill').forEach(b => b.classList.toggle('active', b.dataset.cat === cat.name));
+    document.getElementById('sectionTitle').textContent = cat.name;
+    render();
+  });
+  catStrip.appendChild(btn);
+});
+ 
+function filterStore(store) {
+  activeStore = store;
+  document.querySelectorAll('.store-tab').forEach(t => {
+    t.style.fontWeight = t.id === 'tab-' + store ? '800' : '700';
+    t.style.opacity = t.id === 'tab-' + store || store === 'all' ? '1' : '0.45';
+  });
+  render();
+}
+ 
+function getCartPrice(product) {
+  if (activeStore !== 'all') return product[activeStore];
+  return Math.min(product.blinkit, product.zepto, product.instamart);
+}
+ 
+function getDisplayStore(product) {
+  if (activeStore !== 'all') return activeStore;
+  return STORES.reduce((a, b) => product[a] <= product[b] ? a : b);
+}
+ 
+function renderCard(p) {
+  const minPrice = Math.min(p.blinkit, p.zepto, p.instamart);
+  const maxPrice = Math.max(p.blinkit, p.zepto, p.instamart);
+  const displayPrice = getCartPrice(p);
+  const discount = Math.round(((p.mrp - displayPrice) / p.mrp) * 100);
+  const qty = cart[p.id] || 0;
+ 
+  const badgeHtml = p.bestseller
+    ? '<div class="badge bestseller">Bestseller</div>'
+    : p.new ? '<div class="badge">New Look</div>' : '';
+ 
+  const compareHtml = STORES.map(s => {
+    const cheapest = p[s] === minPrice;
+    return `<div class="cmp-chip cmp-${s}${cheapest ? ' cheapest' : ''}">
+      <span style="width:6px;height:6px;border-radius:50%;background:${STORE_COLORS[s]};display:inline-block;"></span>
+      ₹${p[s]}${cheapest ? '<span class="cheapest-badge">LOW</span>' : ''}
+    </div>`;
+  }).join('');
+ 
+  const addHtml = qty === 0
+    ? `<button class="add-btn" onclick="addToCart(${p.id})">ADD</button>`
+    : `<div class="qty-ctrl">
+        <button class="qty-btn" onclick="removeFromCart(${p.id})">−</button>
+        <span class="qty-num">${qty}</span>
+        <button class="qty-btn" onclick="addToCart(${p.id})">+</button>
+       </div>`;
+ 
+  return `
+  <div class="product-card">
+    <div class="product-img-wrap">
+      ${badgeHtml}
+      <img src="${p.img}" alt="${p.item}" onerror="this.src='https://via.placeholder.com/150?text=📦'"/>
+    </div>
+    <div class="product-body">
+      <div class="product-name">${p.item}</div>
+      <div class="product-qty">${p.qty}</div>
+      <div class="price-row">
+        <span class="price-now">₹${displayPrice}</span>
+        <span class="price-mrp">₹${p.mrp}</span>
+        ${discount > 0 ? `<span class="price-off">₹${p.mrp - displayPrice} OFF</span>` : ''}
+      </div>
+      <div class="compare-prices">${compareHtml}</div>
+      ${addHtml}
+    </div>
+  </div>`;
+}
+ 
+function render() {
+  const grid = document.getElementById('productGrid');
+  const noResults = document.getElementById('noResults');
+  const q = searchQuery.toLowerCase().trim();
+ 
+  let filtered = CATALOG.filter(p => {
+    const matchCat = activeCategory === 'All Items' || p.category === activeCategory;
+    const matchSearch = !q || p.item.toLowerCase().includes(q) || p.category.toLowerCase().includes(q);
+    return matchCat && matchSearch;
+  });
+ 
+  document.getElementById('itemCountLabel').textContent = `${filtered.length} items`;
+ 
+  if (filtered.length === 0) {
+    grid.innerHTML = '';
+    noResults.style.display = 'block';
+    return;
+  }
+  noResults.style.display = 'none';
+  grid.innerHTML = filtered.map(renderCard).join('');
+}
+ 
+function addToCart(id) {
+  cart[id] = (cart[id] || 0) + 1;
+  updateCartUI();
+  render();
+}
+ 
+function removeFromCart(id) {
+  if (cart[id] > 1) cart[id]--;
+  else delete cart[id];
+  updateCartUI();
+  render();
+}
+ 
+function updateCartUI() {
+  const items = Object.keys(cart);
+  const totalQty = Object.values(cart).reduce((a, b) => a + b, 0);
+  document.getElementById('cartCount').textContent = totalQty;
+ 
+  const body = document.getElementById('cartBody');
+  const panel = document.getElementById('dealPanel');
+ 
+  if (items.length === 0) {
+    body.innerHTML = `<div class="empty-cart"><div class="icon">🛒</div><p>Your cart is empty.<br/>Add items to compare prices!</p></div>`;
+    panel.style.display = 'none';
+    return;
+  }
+ 
+  const cartProducts = items.map(id => ({...CATALOG.find(p => p.id == id), qty: cart[id]}));
+ 
+  body.innerHTML = cartProducts.map(p => {
+    const price = getCartPrice(p);
+    return `<div class="cart-item">
+      <img class="cart-item-img" src="${p.img}" alt="${p.item}" onerror="this.src='https://via.placeholder.com/52?text=📦'"/>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${p.item}</div>
+        <div class="cart-item-qty-label">${p.qty_label || p.qty}</div>
+        <div class="cart-item-ctrl">
+          <button class="ci-btn" onclick="removeFromCart(${p.id})">−</button>
+          <span class="ci-num">${p.qty}</span>
+          <button class="ci-btn" onclick="addToCart(${p.id})">+</button>
+        </div>
+      </div>
+      <div class="cart-item-price">₹${price * p.qty}</div>
+    </div>`;
+  }).join('');
+ 
+  // Deal calculations
+  const totals = {};
+  STORES.forEach(s => {
+    const subtotal = cartProducts.reduce((sum, p) => sum + p[s] * p.qty, 0);
+    const delivery = subtotal < FREE_THRESHOLD ? DELIVERY_FEE : 0;
+    totals[s] = { subtotal, delivery, total: subtotal + delivery };
+  });
+  const winner = STORES.reduce((a, b) => totals[a].total <= totals[b].total ? a : b);
+  const maxTotal = Math.max(...STORES.map(s => totals[s].total));
+  const savings = maxTotal - totals[winner].total;
+ 
+  const storeRows = STORES.map(s => {
+    const isWin = s === winner;
+    const delStr = totals[s].delivery > 0 ? `+ ₹${totals[s].delivery} delivery` : 'Free delivery';
+    return `<div class="store-total-row${isWin ? ' winner' : ''}">
+      <div class="str-left">
+        <span class="str-dot" style="background:${STORE_COLORS[s]}"></span>
+        <div>
+          <span class="str-name">${STORE_LABELS[s]}</span>${isWin ? '<span class="win-badge">BEST</span>' : ''}
+          <div class="str-del">${delStr}</div>
+        </div>
+      </div>
+      <div class="str-price">₹${totals[s].total}</div>
+    </div>`;
+  }).join('');
+ 
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div class="deal-heading">Price Comparison</div>
+    ${storeRows}
+    ${savings > 0 ? `<div class="savings-banner"><span class="sav-label">💰 You save with ${STORE_LABELS[winner]}</span><span class="sav-amt">₹${savings}</span></div>` : ''}
+    <button class="checkout-btn">✓ Order from ${STORE_LABELS[winner]} · ₹${totals[winner].total}</button>
+  `;
+}
+ 
+function toggleCart() {
+  document.getElementById('cartDrawer').classList.toggle('open');
+  document.getElementById('cartOverlay').classList.toggle('open');
+}
+document.getElementById('cartToggle').addEventListener('click', toggleCart);
+ 
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchQuery = e.target.value;
+  render();
+});
+ 
+// Init
+render();
+updateCartUI();
+</script>
+</body>
+</html>
+ 
